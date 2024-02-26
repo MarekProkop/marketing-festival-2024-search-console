@@ -1,0 +1,45 @@
+---
+title: "Můj první Quarto dokument"
+author: "Marek Prokop"
+execute: 
+  echo: false
+format: 
+  html:
+    df-print: paged
+---
+
+Zde si budu zkoušet R na školení na Marketing Festivalu.
+
+Teď sčítání a odčítání.
+
+```{r}
+1 + 15
+```
+
+Aha, to je zajímavé, 1 + 15 je 16.
+
+```{r}
+promena <- 1 + 15
+promena * 2
+```
+
+```{r}
+sum(1, 2, 3)
+```
+
+```{r}
+mtcars
+```
+
+```{r}
+sum(round(runif(10, 1, 10)))
+
+runif(10, 1, 10) |> 
+  round(digits = 2) |> 
+  sum(na.rm = TRUE)
+```
+
+```{r}
+paste("oiuoiuoiu", "vnvnbvnbvn", sep = "", )
+```
+

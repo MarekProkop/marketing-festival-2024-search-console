@@ -1,0 +1,239 @@
+---
+title: "Search Console a manipulace s daty"
+author: "Marek Prokop"
+institute: "[PROKOP software s.r.o.](https://www.prokopsw.cz/cs)"
+date: last-modified
+date-format: "D. M. YYYY"
+execute: 
+  eval: true 
+  echo: true
+format:
+  revealjs:
+    theme: [white, custom.scss]
+    highlight-style: a11y
+    code-line-numbers: false
+    auto-stretch: true
+    df-print: paged
+    controls: true
+    controls-layout: bottom-right
+    progress: true
+    self-contained: true
+---
+
+## V této části se naučíte:
+
+1. Načítat data ze Search Console
+2. Základní operace s dataframy
+3. Kreslení grafů
+
+
+## Nainstalujte si nejnovější verzi *searchConsoleR*
+
+Z konsole:
+
+```{r}
+#| eval: false
+
+devtools::install_github("MarkEdmondson1234/searchConsoleR")
+```
+
+## Uložte si svůj účet Google
+
+Z konsole:
+
+```{r}
+#| eval: false
+usethis::edit_r_environ()
+```
+
+Otevře se textový soubor, do kterého přidejte řádek:
+
+``` default
+MY_GOOGLE_ACCOUNT = "my.name@gmail.com"
+```
+
+Soubor uložte a restartujte R session (*Session* ➔ *Restart R*). 
+
+Tento postup stačí udělat na každém počítači jen jednou.
+
+## Potřebné balíčky
+
+```{r}
+library(tidyverse)
+library(searchConsoleR)
+```
+
+## Autorizace a přístupné weby
+
+```{r}
+#| rows.print: 5
+scr_auth(email = Sys.getenv("MY_GOOGLE_ACCOUNT"))
+list_websites()
+```
+
+## Filtrování podle části URL
+
+```{r}
+list_websites() |> 
+  filter(str_detect(siteUrl, "marekp.cz"))
+```
+
+```{r}
+my_site <- list_websites() |> 
+  filter(str_detect(siteUrl, "marekp.cz")) |> 
+  pull(siteUrl)
+
+my_site
+```
+
+## Načtení dat - minimalistická verze
+
+```{r}
+search_analytics(siteURL = my_site)
+```
+
+## Načtení dat - normální verze
+
+```{r}
+#| rows.print: 5
+search_analytics(
+  siteURL = my_site,
+  startDate = today() - 92,
+  endDate = today() - 3,
+  dimensions = "query"
+)
+```
+
+## Dotazy jen jedné stránky
+
+```{r}
+#| rows.print = 5
+search_analytics(
+  siteURL = my_site,
+  startDate = today() - 367, endDate = today() - 3,
+  dimensions = "query",
+  dimensionFilterExp = "page==http://www.marekp.cz/harmonica/"
+)
+```
+
+## Počet dotazů na stránku {.smaller}
+
+```{r}
+#| rows.print = 8
+search_analytics(
+  siteURL = my_site,
+  startDate = today() - 367, endDate = today() - 3,
+  dimensions = c("page", "query")
+) |> 
+  count(page, sort = TRUE)
+```
+
+## Agregace podle stránek (1) {.smaller}
+
+```{r}
+#| rows.print = 8
+search_analytics(
+  siteURL = my_site,
+  startDate = today() - 367, endDate = today() - 3,
+  dimensions = c("page", "query")
+) |> 
+  group_by(page) |> 
+  summarise(queries = n_distinct(query))
+```
+
+## Agregace podle stránek (2) {.smaller}
+
+```{r}
+#| output-location: slide
+search_analytics(
+  siteURL = my_site,
+  startDate = today() - 367, endDate = today() - 3,
+  dimensions = c("page", "query")
+) |> 
+  group_by(page) |> 
+  summarise(
+    queries = n_distinct(query),
+    positions = weighted.mean(position, impressions),
+    impressions = sum(impressions)
+  ) |> 
+  relocate(impressions, .after = 1) |> 
+  arrange(desc(impressions))
+```
+
+## Časová řada - jednoduchá, po dnech
+
+```{r}
+#| output-location: column
+#| fig.asp: 0.8
+search_analytics(
+  siteURL = my_site,
+  startDate = today() - 92,
+  endDate = today() - 3,
+  dimensions = "date"
+) |> 
+  ggplot(aes(x = date, y = impressions)) +
+  geom_line()
+```
+
+## Časová řada - fasetová, po dnech
+
+```{r}
+#| output-location: column
+#| fig-asp: 1
+search_analytics(
+  siteURL = my_site,
+  startDate = today() - 92,
+  endDate = today() - 3,
+  dimensions = "date"
+) |> 
+  pivot_longer(
+    cols = !date, names_to = "metric"
+  ) |> 
+  ggplot(aes(x = date, y = value)) +
+  geom_line() +
+  facet_wrap(
+    ~metric, scales = "free_y", ncol = 1
+  )
+```
+
+## Funkce `pivot_longer`
+
+Převádí širokou tabulku na dlouhou. Pro fasetový graf se používá velmi často.
+
+![](https://jules32.github.io/r-for-excel-users/img/tidyr_pivot_longer.png)
+
+
+# Náměty na další využití R
+
+## SEO analýzy pro klienty
+
+-   Reportování výsledků ve složitější struktuře, než umožňuje Data Studio (segmentace podle dotazů, stránek, zemí apod.).
+
+-   Vyhledávání příležitostí ke zlepšení -- dotazy, které jsou v klíčovce (nebo v Google Ads) a nejsou v Search Consoli, porovnání výsledků ve více zemích/jazycích atd.
+
+-   Příprava na plošnou změnu URL a kontrola po změně -- párování stránek podle podobnosti titulku a/nebo URL.
+
+-   Vyhodnocování SEO A/B testů.
+
+-   Úvodní audity webu -- Screaming Frog + Search Console + Analytics.
+
+-   Využívání OpenAI API.
+
+## Využití v jiných oblastech
+
+-   Vyhodnocování efektivity reklamy.
+
+-   Zpracování uživatelských výzkumů a výzkumů trhu.
+
+-   Zákaznická analytika, RFM modely, churn analysis u SAAS subscription modelů atd.
+
+-   Analýza konvezního poměru a vracejících se zákazníků -- hledání vzorců, které ovllivňují klíčové metriky.
+
+-   Scrapování informací z webu.
+
+-   Rozpočtování, finanční analýzy, cokoli, co se dá udělat v Excelu.
+
+::: callout-tip
+Vyrobil jsem [balíček, který z libovolného českého jména pozná pohlaví](https://github.com/MarekProkop/names.cze).
+:::
+

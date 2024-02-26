@@ -1,0 +1,523 @@
+---
+title: "Základy R"
+author: "Marek Prokop"
+institute: "[PROKOP software s.r.o.](https://www.prokopsw.cz/cs)"
+date: last-modified
+date-format: "D. M. YYYY"
+execute: 
+  eval: true 
+  echo: true
+format:
+  revealjs:
+    theme: [white, custom.scss]
+    highlight-style: a11y
+    code-line-numbers: false
+    auto-stretch: true
+    df-print: paged
+    controls: true
+    controls-layout: bottom-right
+    progress: true
+    self-contained: true
+---
+
+```{r}
+#| label: libraries
+#| include: false
+
+library(webshot2)
+library(searchConsoleR)
+library(patchwork)
+
+scr_auth(email = Sys.getenv("MY_GOOGLE_ACCOUNT"))
+
+source("c:/dev/R/mylib/sc/plot-query-ts.R")
+```
+
+## V této části se naučíte:
+
+1.  Co je R
+2.  Proč je R vhodné pro SEO
+3.  Jak R nainstalovat, nastavit a udržovat
+4.  Jak pracovat s konzolí, skripty a dokumenty Quarto
+5.  Jak používat Markdown v dokumentech Quarto
+6.  Které základní datové typy a operace R budete potřebovat
+
+# Co je R
+
+## R je programovací jazyk pro statistiku a práci s daty
+
+-   R je open source.
+-   R je zadarmo.
+-   R běží na všech běžných operačních systémech.
+-   R má rozsáhlou a velmi přátelskou komunitu.
+-   R může běžet i v cloudu.
+-   Jako vývojové a uživatelské prostředí pro R se nejastěji používá RStudio.
+
+## Proč používat R pro SEO
+
+::: incremental
+-   Na R se můžete dívat jako na Excel, který je rychlejší, zvládá větší data a umí toho víc.
+-   Skripty uchovají postup řešení. Když teď něco uděláte, dokážete i po roce zjist, jak jste to udělali, a proč zrovna takhle.
+-   R usnadňuje automatizaci. Cokoli v R uděláte, můžete kdykoli později snadno zopakovat s jinými daty či parametry.
+-   R umí přistupovat k datům Search Console, Google Analytics a dalších nástrojů, které mají API.
+-   V R jdou tvořit luxusní vizualizace, reporty, dashboardy a mnoho jiných výstupů. I tato prezentace je napsaná v R.
+:::
+
+## Motivační obrázek :-)
+
+```{r}
+#| label: plot query
+#| echo: false
+
+plot_query_ts(
+  site = "http://www.marekp.cz/",
+  query = "zlatá stezka českého ráje",
+  country = "cze",
+  date_from = lubridate::today() - 92,
+  date_to = lubridate::today() - 3
+)
+```
+
+
+# Instalace a nastavení R a RStudia
+
+## Instalace R
+
+Především potřebujete základní jazyk R. Nainstalujete ho z adresy <https://cloud.r-project.org/>.
+
+![](https://www.prokopsw.cz/bookdown/excel-r/img/r-01.png)
+
+## Instalace RStudia
+
+Nainstalujte bezplatnou verzi **RStudio Desktop** z adresy <https://posit.co/download/rstudio-desktop/>.
+
+```{r}
+#| echo: false
+
+webshot(
+  url = "https://posit.co/download/rstudio-desktop/", 
+  file = "img/posit.png", 
+  vwidth = 1200, vheight = 950, cliprect = "viewport"
+)
+```
+
+
+## Nastavení RStudia -- .RData
+
+![](https://www.prokopsw.cz/bookdown/excel-r/img/rstudio-options-01.png)
+
+## Nastavení RStudia -- native pipe
+
+![](https://www.prokopsw.cz/bookdown/excel-r/img/rstudio-options-02.png)
+
+## Balíčky
+
+Funkčnost základního R rozšiřují balíčky (*packages*). Pro začátek si nainstalujte balíčky **tidyverse**, **usethis**, **devtools** a **searchConsoleR**.
+
+Menu *Tools* příkaz *Install Packages*
+
+![](https://www.prokopsw.cz/bookdown/excel-r/img/install-packages-01.png)
+
+# Práce v RStudiu
+
+## Založte si „školní" projekt
+
+Příkaz *New Project...* z menu *File*
+
+![](https://www.prokopsw.cz/bookdown/excel-r/img/rstudio-project-01.png)
+
+------------------------------------------------------------------------
+
+![](https://www.prokopsw.cz/bookdown/excel-r/img/rstudio-project-02.png)
+
+------------------------------------------------------------------------
+
+![](https://www.prokopsw.cz/bookdown/excel-r/img/rstudio-project-03.png)
+
+## Organizace projektů v RStudiu
+
+Projekty používejte vždy a dobře si promyslete strukturu složek. Já používám:
+
+-   Jednu kořenovou složku na všechno v R.
+
+-   V ní mám podsložky:
+
+    -   *Clients* -- pro všechny klienty a klientské projekty.
+
+    -   *Trials* -- na různé pokusy, o kterých ještě nevím, co z nich bude.
+
+    -   *Learning* -- na kurzy, které si občas dělám.
+
+    -   *Public* -- na projekty, které publikuju veřejně jako opensource.
+
+-   V každé této podsložce pak zakládám samostatné projekty. Některé projekty pak ještě člením na další podsložky.
+
+## Konzole, skripty, Quarto
+
+Postupně vám naživo ukážu práci v konzoli, ve skriptu a v dokumentu Quarto.
+
+::: {.incremental}
+- Práce k v kozoli se hodí pro rychlé ověření nějaké funkce či hodnoty, nastavení něčeho, vyzkoušení něčeho. Já sám používám konzoli výjimečně.
+- Skripty se hodí pro definici funkcí, nějaký automatický proces, psaní balíčků apod. Jdou spouštět i přímo z operačního systému.
+- Dokumenty Quarto se hodí na vše ostatní, tedy zejména na vlastní analýzy, reporty či prezentace pro klienty apod.
+:::
+
+# Více o Quartu a Markdownu
+
+## Proč Quarto / R Markdown
+
+-   Všechno, co uděláte, budete mít uložené a můžete se k tomu kdykoli vrátit.
+-   Ke kódu si můžete psát vlastní komentáře -- co chcete udělat, proč to děláte zrovna takhle, co z toho vyplývá atd.
+-   Můžete snadno spouštět jak celý kód, tak jeho logické části.
+-   Výsledky vidíte rovnou u kódu, který je vytvořil.
+-   Výstupy můžete snadno sdílet s lidmi, kteří R nepoužívají.
+
+## Druhy R Markdownu
+
+::: columns
+::: {.column width="50%"}
+### Podle chování
+
+-   R Notebook
+
+-   R Document
+
+-   R Presentation
+
+-   **Quarto Document**
+
+-   Quarto Presentation
+:::
+
+::: {.column width="50%"}
+### Podle výstupu
+
+-   **HTML**
+
+-   PDF
+
+-   Word
+
+-   Powert Point
+
+-   Markdown pro Github
+
+-   a asi 20 dalších formátů
+:::
+:::
+
+Pro začátek vám bude stačit jenom **Quarto Document** s výstupem do **HTML**.
+
+## Markdown pro běžný text
+
+``` markdown
+# Tohle je nadpis 1. úrovně
+
+Tohle je běžný odstavec. Víc odstavců je od sebe odděleno dvěma Entry čili prázdným řádkem.
+
+## Tohle je nadpis 2. úrovně
+
+Tohle je příklad [odkazu v textu](https://example.com). A tohle je příklad odrážek:
+
+- první odrážka,
+- druhá odrážka,
+- třetí odrážka.
+
+Jdou udělat i číslované body, které se automaticky očíslují podle pořadí:
+
+1. První bod.
+1. Druhý bod.
+1. Poslední bod.
+```
+
+## Markdown pro běžný text -- výsledek
+
+![](https://www.prokopsw.cz/bookdown/excel-r/img/markdown-01.png)
+
+
+## Markdown s kódem v R
+
+R Mardown je Markdown, do kterého jsou zamíchané kusy eRkového kódu.
+
+Libovolný text v Markdownu…
+
+    ```{{r}}
+    5 + 15
+    ```
+
+Jiný libovolný text v Markdownu…
+
+    ```{{r}}
+    100 - 10
+    ```
+
+Blok kódu v R přidáte klávesovou zkratkou `Ctrl`+`Alt`+`I`.
+
+## Výpis tabulky
+
+```{r}
+#| rows.print: 5
+mtcars
+```
+
+## Zobrazení grafu
+
+```{r}
+library(ggplot2)
+mtcars |> 
+  ggplot(aes(hp, mpg)) +
+  geom_point()
+```
+
+# Základní datové typy v R
+
+## Čísla
+
+Číslo je prostě číslo.
+
+```{r}
+15
+```
+
+```{r}
+3.14
+```
+
+## S čísly jde počítat
+
+```{r}
+10 + 20
+```
+
+```{r}
+20 - 5
+```
+
+```{r}
+20 / 5
+```
+
+```{r}
+(5 * 4) / 2
+```
+
+## Znakové řetězce
+
+Znakový řetězec se dává do uvozovek nebo apostrofů.
+
+```{r}
+"Tohle je znakový řetězec"
+```
+
+```{r}
+'A tohle je taky znakový řetězec'
+```
+
+```{r}
+'Tohle je znakový řetězec s "uvozovkami" uvnitř.'
+```
+
+## Řetězce spojuje funkce `paste`.
+
+```{r}
+paste("první řetězec", "druhý řetězec")
+```
+
+Nebo s čárkou mezi místo mezery:
+
+```{r}
+paste("první řetězec", "druhý řetězec", sep = ",")
+```
+
+Nebo bez ničeho mezi:
+
+```{r}
+paste("první řetězec", "druhý řetězec", sep = "")
+```
+
+## Funkce
+
+-   Funkce fungují jako v Excelu, ale většinou se jmenují jinak.
+-   Parametry bez jména musí být v přesném pořadí.
+-   Pojmenované parametry mohou být v libovolném pořadí.
+-   Nápovědu získáte klávesou [F1]{.kbd} nebo otazníkem před funkcí.
+
+## Příklady funkcí
+
+```{r}
+abs(-15)
+```
+
+```{r}
+round(15.9876, digits = 2)
+```
+
+```{r}
+floor(15.9876)
+```
+
+```{r}
+max(1, 2, 3, 4, 5)
+```
+
+## Vektory
+
+Proč se před každým výsledkem zobrazuje \[1\]?
+
+-   Protože základní datové typy v R (čísla, znakové řetězce, logické hodnoty a tzv. faktory) jsou vždy vektory.
+
+-   Vektor je uspořádaná posloupnost jedné či více hodnot.
+
+-   Výsledkem následující operace je tedy číselný vektor s jednou hodnotou.
+
+```{r}
+3 + 5
+```
+
+## Vytváření vektorů
+
+Když chcete vytvořit vektor s více než jednou hodnotou, máte několik možností.
+
+Např. posloupnost:
+
+```{r}
+1:10
+```
+
+Nebo použijete funkci `c`:
+
+```{r}
+c(1, 2, 3, 6, 5, 4)
+```
+
+## Počítání s vektory
+
+S vektory jde normálně počítat a vlastně dělat skoro cokoli.
+
+:::: {.columns}
+
+::: {.column width="48%"}
+```{r}
+c(1, 2, 3) * 10
+```
+
+```{r}
+c(1, 2, 3) * c(1, 2, 3)
+```
+:::
+
+::: {.column width="2%"}
+:::
+
+::: {.column width="48%"}
+```{r}
+paste(
+  c(
+    "první vektor, první řetězec", 
+    "první vektor, druhý řetězec"
+  ), 
+  c(
+    "druhý vektor, první řetězec", 
+    "druhý vektor, druhý řetězec"
+  ),
+  sep = " - "
+)
+```
+:::
+::::
+
+
+## Nápověda k funkcím
+
+R má integrovanou nápovědu ke všem funkcím. Vyvoláte ji:
+
+-   Klávesou [F1]{.kbd} na názvu funkce v konzoli, skriptu, nebo bloku kódu v R Markdownu.
+-   Otazníkem a názvem funkce.
+
+```{r}
+#| eval: false
+?rnorm
+```
+
+Nápověda se v RStudiu zobrazí na panelu *Help*.
+
+## Vnořování funkcí
+
+Představte si, že potřebujete vnořit jednu funkci do druhé, např.:
+
+```{r}
+round(runif(n = 40, min = 1, max = 10), digits = 2)
+```
+
+## Pipes neboli řetězení funkcí
+
+V R budete používat fakt hodně funkcí a vnořování by bylo brzy nepřehledné. Proto existuje operátor *pipe*.
+
+```{r}
+runif(n = 40, min = 1, max = 10) |> 
+  round(digits = 1)
+```
+
+## Porovnání pipes a vnořování {.smaller}
+
+### Pipes
+
+```{{r}}
+objekt |> 
+  prvni_funkce(druhy_parametr_prvni_funkce, treti_parametr_prvni_funkce) |> 
+  druha_funkce(druhy_parametr_druhe_funkce) |> 
+  treti_funkce(druhy_parametr_treti_funkce) |> 
+  ctvrta_funkce() |> 
+  pata_funkce(druhy_parametr_pate_funkce)
+```
+
+### Vnořování
+
+```{{r}}
+pata_funkce(
+  ctvrta_funkce(
+    treti_funkce(
+      druha_funkce(
+        prvni_funkce(
+          objekt, druhy_parametr_prvni_funkce, treti_parametr_prvni_funkce
+        ), druhy_parametr_druhe_funkce
+      ), druhy_parametr_treti_funkce
+    )
+  ), druhy_parametr_pate funkce
+)
+```
+
+Ve starších příkladech najdete pipe, která vypadá takhle `%>%`. Je to plusmínus totéž.
+
+## Objekty
+
+Výsledky jakýkoli operací (neboli *výrazů*) můžete ukládat do pojmenovaných objektů.
+
+```{r}
+muj_objekt <- runif(n = 20, min = 1, max = 10)
+
+muj_objekt |> 
+  round(digits = 1)
+```
+
+-   Jména objektů se mohou skládat jen z písmen anglické abecedy, podtržítek a teček.
+-   Ukládají se do tzv. prostředí (*environment*).
+-   Po ukončení R (resp. RStudia) nebo po restartu session zmizí.
+
+## Klávesové zkratky {.smaller}
+
+| **Akce**                           | **Windows & Linux**    | **Mac**                   |
+|------------------------------------|------------------------|---------------------------|
+| Vlož blok kódu (chunk)             | [Ctrl]{.kbd} + [Alt]{.kbd} + [I]{.kbd}       | [Cmd]{.kbd} + [Option]{.kbd} + [I]{.kbd}    |
+| Vlož přiřazení (znaky `<-`)        | [Alt]{.kbd} + [-]{.kbd}                      | [Option]{.kbd} + [-]{.kbd}              |
+| Vlož operátor *pipe* (`|>`)        | [Ctrl]{.kbd} + [Shift]{.kbd} + [M]{.kbd}     | [Cmd]{.kbd} + [Shift]{.kbd} + [M]{.kbd}     |
+| Proveď řádek kódu s kurzorem       | [Ctrl]{.kbd} + [Enter]{.kbd}                 | [Cmd]{.kbd} + [Enter]{.kbd}         |
+| Proveď blok kódu s kurzorem        | [Ctrl]{.kbd} + [Shift]{.kbd} + [Enter]{.kbd} | [Cmd]{.kbd} + [Shift]{.kbd} + [Enter]{.kbd} |
+| Proveď všechny bloky v souboru     | [Ctrl]{.kbd} + [Alt]{.kbd} + [R]{.kbd}       | [Cmd]{.kbd} + [Option]{.kbd} + [R]{.kbd}    |
+| Proveď bloky nad kurzorem  | [Ctrl]{.kbd} + [Alt]{.kbd} + [P]{.kbd}       | [Cmd]{.kbd} + [Option]{.kbd} + [P]{.kbd}    |
+| Zobraz celý dokument v HTML        | [Ctrl]{.kbd} + [Shift]{.kbd} + [K]{.kbd}     | [Cmd]{.kbd} + [Shift]{.kbd} + [K]{.kbd}     |
+| Nápověda k funkci s kurzorem       | [F1]{.kbd}                                   | [F1]{.kbd}                      |
+| Nápověda/dokončení kódu            | [Ctrl]{.kbd} + [Space]{.kbd}                 | [Cmd]{.kbd} + [Space]{.kbd}                |
+
+\
+Pokud si je nechcete pamatovat, všechny mají i své tlačítko buď na toolbaru nad editorem, nebo přímo v pravém horním rohu každého bloku kódu. Funkce tlačítek se vám zobrazí po najetí myši.
